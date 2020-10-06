@@ -823,3 +823,5 @@ crawling*
 *.csv
 db*.py
 *.sql
+.DS_Store
+.vscode
