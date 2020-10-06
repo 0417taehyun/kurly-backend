@@ -810,3 +810,8 @@ MigrationBackup/
 .ionide/
 
 # End of https://www.toptal.com/developers/gitignore/api/python,django,vim,pycharm,visualstudiocode,visualstudio,pycharm+all,pycharm+iml
+
+crawling*
+*.csv
+db*.py
+*.sql
