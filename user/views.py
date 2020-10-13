@@ -101,23 +101,23 @@ class KakaoSignInView(View):
             if access_token == None:
                 return JsonResponse({'message' : 'no_auth_token'}, status = 401)
 
-            profile_json    = requests.get(
+            payload_json = requests.get(
                 'https://kapi.kakao.com/v2/user/me', 
                 headers = {
                     "Authorization": f"Bearer {access_token}"
                 }
             ).json
 
-            email      = profile_json.get('kakao_account', None)['email']
-            kakao_id   = profile_json.get('id', None)
+            email      = payload_json.get('kakao_account')['email']
+            kakao_id   = payload_json.get('id', None)
 
             if kakao_id == None:
                 return JsonResponse({'message' : 'INVALID_KEY'}, status = 400)
 
             if not User.objects.filter(kakao_id = kakao_id).exists():
                 User.objects.create(account = kakao_id, email = email, kakao_id = kakao_id)
-
             user         = User.objects.get(kakao_id = kakao_id)
+            
             access_token = jwt.encode(
                         {'id':user.id}, local_settings.SECRET_KEY, algorithm = local_settings.ALGORITHM
                     ).decode('utf-8')
