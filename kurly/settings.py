@@ -1,4 +1,4 @@
-import local_settings
+from kurly import local_settings
 
 from pathlib import Path
 
@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = local_settings.SECRET_KEY
 
-DATABASE = local_settings.DATABASES
+DATABASES = local_settings.DATABASES
 
 DEBUG = True
 
@@ -19,7 +19,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders'
+    'corsheaders',
+    'user'
 ]
 
 MIDDLEWARE = [
