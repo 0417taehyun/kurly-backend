@@ -12,6 +12,7 @@ from django.core.exceptions import (
 from user.models  import (
     User
 )
+from user.utils import login_required
 
 from kurly import local_settings
 from .validator import (
@@ -117,7 +118,7 @@ class KakaoSignInView(View):
             if not User.objects.filter(kakao_id = kakao_id).exists():
                 User.objects.create(account = kakao_id, email = email, kakao_id = kakao_id)
             user         = User.objects.get(kakao_id = kakao_id)
-            
+
             access_token = jwt.encode(
                         {'id':user.id}, local_settings.SECRET_KEY, algorithm = local_settings.ALGORITHM
                     ).decode('utf-8')
@@ -125,3 +126,83 @@ class KakaoSignInView(View):
         
         except KeyError:
             return JsonResponse({'message': 'INVALID_KEY'}, status = 400)
+
+class CartView(View):
+    @login_required
+    def get(self, request):
+        user     = request.user
+        carts    = user.cart_set.prefetch_related('productseries', 'productseries__product'. 'productseries__product__discount').all()
+        response = {
+            'cart':[{
+                'cart_id'             : cart.id,
+                'product_image'       : cart.productseries.product.image,
+                'product_name'        : cart.productseries.product.name,
+                'product_series_name' : cart.productseries.name,
+                'product_price'       : cart.productseries.product.price,
+                'discount_price'      : cart.productseries.product.discount.percentage,
+                'count'               : cart.count
+            } for cart in carts]
+        }
+
+        return JsonResponse(response, status = 200)
+
+    @login_required
+    def post(self, request):
+        data = json.loads(request.body)
+        try:
+            product_series_id    = data['product_series_id']
+            product_count        = data['product_count']
+            user                 = request.user
+
+            if user.cart_set.filter(series = product_series_id).exists():
+                cart = user.cart_set.get(series = product_series_id)
+                cart.count += product_count
+                cart.save()
+            else:
+                Cart.objects.create(
+                    series = ProductSeries.objects.get(id = product_series_id),
+                    user = user,
+                    count = product_count
+                )
+            return JsonResponse({'message':'SUCCESS'}, status = 200)
+
+        except ProductSeries.DoesNotExist:
+            return JsonResponse({'message':'INVALID_ID'}, status = 400)
+
+        except KeyError:
+            return JsonResponse({'message':'KEY_ERROR'}, status = 400)
+
+    @login_required
+    def put(self, request):
+        data = json.loads(request.body)
+        try:
+            cart_id       = data['cart_id']
+            product_count = data['product_count']
+
+            cart = Cart.objects.get(id = cart_id)
+            cart.count = product_count
+            cart.save()
+
+            return JsonResponse({'message':'SUCCESS'}, status = 200)
+
+        except Cart.DoesNotExist:
+            return JsonResponse({'message':'INVALID_ID'}, status = 400)
+
+        except KeyError:
+            return JsonResponse({'message':'KEY_ERROR'}, status = 400)
+
+    @login_required
+    def delete(self, request):
+        data = json.loads(request.body)
+        try:
+            cart_id = data['cart_id']
+
+            Cart.objects.get(id = cart_id).delete()
+
+            return JsonResponse({'message':'SUCCESS'}, status = 200)
+
+        except Cart.DoesNotExist:
+            return JsonResponse({'message':'INVALID_ID'}, status = 400)
+
+        except KeyError:
+            return JsonResponse({'message':'KEY_ERROR'}, status = 400)
