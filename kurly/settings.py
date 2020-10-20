@@ -8,6 +8,8 @@ SECRET_KEY = local_settings.SECRET_KEY
 
 DATABASES = local_settings.DATABASES
 
+CACHES = local_settings.CACHES
+
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
@@ -20,7 +22,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
-    'user'
+    'user',
+    'products'
 ]
 
 MIDDLEWARE = [
