@@ -12,7 +12,7 @@ from django.core.exceptions import (
 from user.models  import (
     User
 )
-from product.models import ProductSeries
+from products.models import ProductSeries
 
 from user.utils import login_required
 from kurly import local_settings
@@ -157,7 +157,7 @@ class CartView(View):
     @login_required
     def get(self, request):
         user     = request.user
-        carts    = user.cart_set.prefetch_related('productseries', 'productseries__product'. 'productseries__product__discount').all()
+        carts    = user.cart_set.prefetch_related('productseries', 'productseries__product', 'productseries__product__discount').all()
         data_list = []
         for cart in carts:
             if cart.productseries.product.discount.percentage is None:

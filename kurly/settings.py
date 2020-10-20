@@ -8,7 +8,7 @@ SECRET_KEY = local_settings.SECRET_KEY
 
 DATABASES = local_settings.DATABASES
 
-CACHES = local_settings.CACHES
+# CACHES = local_settings.CACHES
 
 DEBUG = True
 

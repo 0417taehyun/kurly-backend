@@ -1,5 +1,6 @@
 from django.db import models
-from product.models import ProductSeries
+from products.models import ProductSeries
+
 class User(models.Model):
     account       = models.CharField(max_length = 32)
     password      = models.CharField(max_length = 64, null = True)
@@ -9,8 +10,6 @@ class User(models.Model):
     address       = models.CharField(max_length = 128, null = True)
     gender        = models.CharField(max_length = 32, null = True)
     birth         = models.CharField(max_length = 32, null = True)
-    cart_list     = models.ManyToManyField('product.Product', through = 'CartList')
-    kakao_id      = models.CharField(max_length = 64, null = True)
     
     class Meta:
         db_table = 'users'
