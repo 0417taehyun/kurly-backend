@@ -12,9 +12,11 @@ from django.core.exceptions import (
 from user.models  import (
     User
 )
-from user.utils import login_required
+from product.models import ProductSeries
 
+from user.utils import login_required
 from kurly import local_settings
+
 from .validator import (
     account_validate,
     account_overlap,
@@ -28,9 +30,9 @@ class SignUpView(View):
     def post(self, request):
         data = json.loads(request.body)
         try:
-            account      = data['account']
-            if(account_validate(account)):
-                if(account_overlap(account)):
+            account = data['account']
+            if account_validate(account):
+                if account_overlap(account):
                     raise ValidationError('ACCOUNT_OVERLAPED')
             else:
                 raise ValidationError('INVALID_ACCOUNT_INPUT')
@@ -95,56 +97,98 @@ class SignInView(View):
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status = 400)
 
-class KakaoSignInView(View):
+# class KakaoSignInView(View):
+#     def get(self, request):
+#         try:
+#             access_token    = request.headers.get('Authorization', None)
+#             if access_token == None:
+#                 return JsonResponse({'message' : 'no_auth_token'}, status = 401)
+
+#             payload_json = requests.get(
+#                 'https://kapi.kakao.com/v2/user/me', 
+#                 headers = {
+#                     "Authorization": f"Bearer {access_token}"
+#                 }
+#             ).json
+
+#             email      = payload_json.get('kakao_account')['email']
+#             kakao_id   = payload_json.get('id', None)
+
+#             if kakao_id == None:
+#                 return JsonResponse({'message' : 'INVALID_KEY'}, status = 400)
+
+#             if not User.objects.filter(kakao_id = kakao_id).exists():
+#                 User.objects.create(account = kakao_id, email = email, kakao_id = kakao_id)
+#             user = User.objects.get(kakao_id = kakao_id)
+
+#             access_token = jwt.encode(
+#                         {'id':user.id}, local_settings.SECRET_KEY, algorithm = local_settings.ALGORITHM
+#                     ).decode('utf-8')
+#             return JsonResponse({'ACCESS_TOKEN': access_token}, status = 200)
+        
+#         except KeyError:
+#             return JsonResponse({'message': 'INVALID_KEY'}, status = 400)
+
+class GoogleSignInView(View):
     def get(self, request):
+        GOOGLE_TOKEN_URL = "https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token="
+        
         try:
-            access_token    = request.headers.get('Authorization', None)
+            access_token      = request.headers.get('Authorization', None)
             if access_token == None:
                 return JsonResponse({'message' : 'no_auth_token'}, status = 401)
 
-            payload_json = requests.get(
-                'https://kapi.kakao.com/v2/user/me', 
-                headers = {
-                    "Authorization": f"Bearer {access_token}"
-                }
-            ).json
+            google_response   = requests.get(GOOGLE_TOKEN_URL + access_token)
+            google_user       = google_response.json()
+            google_email      = google_user['email']
 
-            email      = payload_json.get('kakao_account')['email']
-            kakao_id   = payload_json.get('id', None)
-
-            if kakao_id == None:
-                return JsonResponse({'message' : 'INVALID_KEY'}, status = 400)
-
-            if not User.objects.filter(kakao_id = kakao_id).exists():
-                User.objects.create(account = kakao_id, email = email, kakao_id = kakao_id)
-            user         = User.objects.get(kakao_id = kakao_id)
-
+            user, _      = User.objects.get_or_create(
+                email      = google_email,
+            )
             access_token = jwt.encode(
                         {'id':user.id}, local_settings.SECRET_KEY, algorithm = local_settings.ALGORITHM
                     ).decode('utf-8')
             return JsonResponse({'ACCESS_TOKEN': access_token}, status = 200)
-        
+
         except KeyError:
-            return JsonResponse({'message': 'INVALID_KEY'}, status = 400)
+            return JsonResponse({"message": "INVALID_GOOGLE_TOKEN"}, status = 401)
 
 class CartView(View):
     @login_required
     def get(self, request):
         user     = request.user
         carts    = user.cart_set.prefetch_related('productseries', 'productseries__product'. 'productseries__product__discount').all()
-        response = {
-            'cart':[{
-                'cart_id'             : cart.id,
-                'product_image'       : cart.productseries.product.image,
-                'product_name'        : cart.productseries.product.name,
-                'product_series_name' : cart.productseries.name,
-                'product_price'       : cart.productseries.product.price,
-                'discount_price'      : cart.productseries.product.discount.percentage,
-                'count'               : cart.count
-            } for cart in carts]
-        }
+        data_list = []
+        for cart in carts:
+            if cart.productseries.product.discount.percentage is None:
+                data =  {
+                            'cart':
+                                {
+                                    'cart_id'             : cart.id,
+                                    'product_image'       : cart.productseries.product.image,
+                                    'product_name'        : cart.productseries.product.name,
+                                    'product_series_name' : cart.productseries.name,
+                                    'product_price'       : cart.productseries.product.price,
+                                    'discount_price'      : cart.productseries.product.price * (1 - cart.productseries.product.discount.percentage/100),
+                                    'count'               : cart.count
+                                }
+                        }
+            else:
+                data =  {
+                            'cart':
+                                {
+                                    'cart_id'             : cart.id,
+                                    'product_image'       : cart.productseries.product.image,
+                                    'product_name'        : cart.productseries.product.name,
+                                    'product_series_name' : cart.productseries.name,
+                                    'product_price'       : cart.productseries.product.price,
+                                    'discount_price'      : None,
+                                    'count'               : cart.count
+                                }
+                        }
+            data_list.append(data)
 
-        return JsonResponse(response, status = 200)
+        return JsonResponse(data_list, status = 200)
 
     @login_required
     def post(self, request):
