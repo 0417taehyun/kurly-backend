@@ -1,5 +1,5 @@
 from django.db import models
-from products.models import ProductSeries
+from products.models import Product, ProductSeries
 
 class User(models.Model):
     account       = models.CharField(max_length = 32)
@@ -10,13 +10,17 @@ class User(models.Model):
     address       = models.CharField(max_length = 128, null = True)
     gender        = models.CharField(max_length = 32, null = True)
     birth         = models.CharField(max_length = 32, null = True)
+    google_id     = models.CharField(max_length = 32, null = True)
+    cart_list     = models.ManyToManyField('products.Product', through = 'CartList')
     
     class Meta:
         db_table = 'users'
 
-class Cart(models.Model):
-    series      = models.ForeignKey(ProductSeries, on_delete = models.CASCADE)
-    user        = models.ForeignKey(User, on_delete = models.CASCADE)
-    count       = models.IntegerField()
+class CartList(models.Model):
+    product        = models.ForeignKey('products.Product', on_delete = models.CASCADE)
+    user           = models.ForeignKey('User', on_delete = models.CASCADE)
+    series         = models.ForeignKey('products.ProductSeries', on_delete = models.CASCADE)
+    count          = models.IntegerField()
+
     class Meta:
         db_table = 'carts'
