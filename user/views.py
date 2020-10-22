@@ -139,6 +139,7 @@ class CartView(View):
                 if cart.series is None:
                     data =  {
                                 'cart_id'             : cart.id,
+                                'product_id'          : cart.product.id,
                                 'product_image'       : cart.product.image,
                                 'product_name'        : cart.product.name,
                                 'product_series_name' : None,
@@ -151,6 +152,7 @@ class CartView(View):
                 else:
                     data =  {
                                 'cart_id'             : cart.id,
+                                'product_id'          : cart.product.id,
                                 'product_image'       : cart.product.image,
                                 'product_name'        : cart.product.name,
                                 'product_series_name' : cart.series.name,
@@ -163,6 +165,7 @@ class CartView(View):
                 if cart.series is None:
                     data =  {
                                 'cart_id'             : cart.id,
+                                'product_id'          : cart.product.id,
                                 'product_image'       : cart.product.image,
                                 'product_name'        : cart.product.name,
                                 'product_series_name' : None,
@@ -175,6 +178,7 @@ class CartView(View):
                 else:
                     data =  {
                                 'cart_id'             : cart.id,
+                                'product_id'          : cart.product.id,
                                 'product_image'       : cart.product.image,
                                 'product_name'        : cart.product.name,
                                 'product_series_name' : cart.series.name,
