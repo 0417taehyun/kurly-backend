@@ -11,9 +11,9 @@ from django.core.exceptions import (
 )
 
 from user.models  import (
-    User
+    User, CartList
 )
-from products.models import ProductSeries
+from products.models import Product, ProductSeries
 
 from user.utils import login_required
 from kurly import local_settings
@@ -30,6 +30,7 @@ from .validator import (
 class SignUpView(View):
     def post(self, request):
         data = json.loads(request.body)
+        print(data)
         try:
             account = data['account']
             if account_validate(account):
@@ -43,30 +44,31 @@ class SignUpView(View):
             if (email):
                 password     = data['password']
                 name         = data['name']
-                email        = data['email']
                 phone_number = data['phone_number']
                 address      = data['address']
 
+                print('hi')
                 email_validate(email)
                 email_overlap(email)
                 password_validate(password)
                 phone_number_validate(phone_number)
-
+                print('hi2')
                 password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
                 password = password.decode('utf-8')
-
+                print(password)
                 User(
                     account        = account,
                     password       = password,
                     name           = name,
                     email          = email,
                     phone_number   = phone_number,
+                    address        = address,
                     gender         = data['gender'],
-                    birth          = data['birth']
+                    birth          = data['birth'],
                 ).save()
                 return JsonResponse({'message':'SIGNUP_SUCCESS'}, status = 200)
 
-            return JsonResponse({'message':'ACCOUNT_SUCCESS'}, status = 400)
+            return JsonResponse({'message':'ACCOUNT_SUCCESS'}, status = 200)
 
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status = 400)
@@ -97,38 +99,6 @@ class SignInView(View):
 
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status = 400)
-
-# class KakaoSignInView(View):
-#     def get(self, request):
-#         try:
-#             access_token    = request.headers.get('Authorization', None)
-#             if access_token == None:
-#                 return JsonResponse({'message' : 'no_auth_token'}, status = 401)
-
-#             payload_json = requests.get(
-#                 'https://kapi.kakao.com/v2/user/me', 
-#                 headers = {
-#                     "Authorization": f"Bearer {access_token}"
-#                 }
-#             ).json
-
-#             email      = payload_json.get('kakao_account')['email']
-#             kakao_id   = payload_json.get('id', None)
-
-#             if kakao_id == None:
-#                 return JsonResponse({'message' : 'INVALID_KEY'}, status = 400)
-
-#             if not User.objects.filter(kakao_id = kakao_id).exists():
-#                 User.objects.create(account = kakao_id, email = email, kakao_id = kakao_id)
-#             user = User.objects.get(kakao_id = kakao_id)
-
-#             access_token = jwt.encode(
-#                         {'id':user.id}, local_settings.SECRET_KEY, algorithm = local_settings.ALGORITHM
-#                     ).decode('utf-8')
-#             return JsonResponse({'ACCESS_TOKEN': access_token}, status = 200)
-        
-#         except KeyError:
-#             return JsonResponse({'message': 'INVALID_KEY'}, status = 400)
 
 class GoogleSignInView(View):
     def get(self, request):
@@ -161,55 +131,60 @@ class CartView(View):
     @login_required
     def get(self, request):
         user     = request.user
-        carts    = CartList.objects.filter(user_id = user).select_related('product', 'productseries').prefetch_related('product__discount').all()
+        carts    = CartList.objects.filter(user_id = user.id).select_related('product', 'series').prefetch_related('product__discount').all()
         data_list = []
+
         for cart in carts:
-            if cart.product.discount.percentage is None:
+            if cart.product.discount is None:
                 if cart.series is None:
                     data =  {
-                                'cart':
-                                    {
-                                        'cart_id'             : cart.id,
-                                        'product_id'          : cart.product.id,
-                                        'product_image'       : cart.product.image,
-                                        'product_name'        : cart.product.name,
-                                        'product_series_name' : cart.product.productseries_set.name,
-                                        'product_price'       : cart.product.productseries_set.price,
-                                        'discount_price'      : cart.product.productseries_set.price * (1 - cart.product.discount.percentage/100),
-                                        'count'               : cart.count
-                                    }
+                                'cart_id'             : cart.id,
+                                'product_image'       : cart.product.image,
+                                'product_name'        : cart.product.name,
+                                'product_series_name' : None,
+                                'product_price'       : cart.product.price,
+                                'discount_price'      : None,
+                                'count'               : cart.count
                             }
+                    data_list.append(data) 
+
                 else:
                     data =  {
-                                'cart':
-                                    {
-                                        'cart_id'             : cart.id,
-                                        'product_id'          : cart.product.id,
-                                        'product_image'       : cart.product.image,
-                                        'product_name'        : cart.product.name,
-                                        'product_series_name' : cart.product.productseries_set.name,
-                                        'product_price'       : cart.product.productseries_set.price,
-                                        'discount_price'      : cart.product.productseries_set.price * (1 - cart.product.discount.percentage/100),
-                                        'count'               : cart.count
-                                    }
+                                'cart_id'             : cart.id,
+                                'product_image'       : cart.product.image,
+                                'product_name'        : cart.product.name,
+                                'product_series_name' : cart.series.name,
+                                'product_price'       : cart.series.price,
+                                'discount_price'      : None,
+                                'count'               : cart.count
                             }
-
+                    data_list.append(data)
             else:
-                data =  {
-                            'cart':
-                                {
-                                    'cart_id'             : cart.id,
-                                    'product_image'       : cart.productseries.product.image,
-                                    'product_name'        : cart.productseries.product.name,
-                                    'product_series_name' : cart.productseries.name,
-                                    'product_price'       : cart.productseries.product.price,
-                                    'discount_price'      : None,
-                                    'count'               : cart.count
-                                }
-                        }
-            data_list.append(data)
+                if cart.series is None:
+                    data =  {
+                                'cart_id'             : cart.id,
+                                'product_image'       : cart.product.image,
+                                'product_name'        : cart.product.name,
+                                'product_series_name' : None,
+                                'product_price'       : cart.product.price,
+                                'discount_price'      : cart.product.price * (1 - cart.product.discount.percentage/100),
+                                'count'               : cart.count
+                            }
+                    data_list.append(data)
 
-        return JsonResponse(data_list, status = 200)
+                else:
+                    data =  {
+                                'cart_id'             : cart.id,
+                                'product_image'       : cart.product.image,
+                                'product_name'        : cart.product.name,
+                                'product_series_name' : cart.series.name,
+                                'product_price'       : cart.series.price,
+                                'discount_price'      : cart.product.price * (1 - cart.product.discount.percentage/100),
+                                'count'               : cart.count
+                            }
+                    data_list.append(data)
+
+        return JsonResponse({'cart' : data_list}, status = 200)
     
     @login_required
     def post(self, request):
@@ -217,15 +192,28 @@ class CartView(View):
             data              = json.loads(request.body)
             user              = request.user
             product_id        = data['product_id']
-            product_series_id = data['product_series_id']
+            product_series_id = data.get('product_series_id', None)
             product_count     = data['product_count'] 
 
             if not(Product.objects.filter(id = product_id).exists()):
                 return JsonResponse({'message':'WRONG_PRODUCT_ID'}, status = 400)
 
             target_product = Product.objects.get(id = product_id)
+
+            if product_series_id == None:
+                if CartList.objects.filter(user_id = user.id, product_id = target_product).exists():
+                    return JsonResponse({'message':'Product Already Exist!'}, status = 400)
+                
+                CartList(
+                    user           = user,
+                    product        = target_product,
+                    count          = product_count
+                ).save()
+                return JsonResponse({'message':'New CartList Added'}, status = 201)
+
             target_series  = ProductSeries.objects.get(id = product_series_id)
-            if CartList.objects.filter(user_id = user, product_id = target_product_id, series_id = product_series_id).exists():
+
+            if CartList.objects.filter(user_id = user.id, product_id = target_product, series_id = product_series_id).exists():
                 return JsonResponse({'message':'Product Already Exist!'}, status = 400)
 
             CartList(
@@ -250,7 +238,7 @@ class CartView(View):
             cart.count = product_count
             cart.save()
 
-            return JsonResponse({'message':'SUCCESS'}, status = 200)
+            return JsonResponse({'message':'UPDATE SUCCESS'}, status = 200)
 
         except CartList.DoesNotExist:
             return JsonResponse({'message':'INVALID_ID'}, status = 400)
@@ -266,7 +254,7 @@ class CartView(View):
 
             CartList.objects.get(id = cart_id).delete()
 
-            return JsonResponse({'message':'SUCCESS'}, status = 200)
+            return JsonResponse({'message':'DELETE SUCCESS'}, status = 200)
 
         except CartList.DoesNotExist:
             return JsonResponse({'message':'INVALID_ID'}, status = 400)

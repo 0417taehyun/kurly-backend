@@ -19,7 +19,7 @@ class User(models.Model):
 class CartList(models.Model):
     product        = models.ForeignKey('products.Product', on_delete = models.CASCADE)
     user           = models.ForeignKey('User', on_delete = models.CASCADE)
-    series         = models.ForeignKey('products.ProductSeries', on_delete = models.CASCADE)
+    series         = models.ForeignKey('products.ProductSeries', on_delete = models.CASCADE, null = True)
     count          = models.IntegerField()
 
     class Meta:
