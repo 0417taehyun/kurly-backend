@@ -12,5 +12,4 @@ urlpatterns = [
     path('/signin', SignInView.as_view()),
     path('/cart', CartView.as_view()),
     path('/googlesignin', GoogleSignInView.as_view()),
-    path('/cart', CartView.as_view())
 ]
