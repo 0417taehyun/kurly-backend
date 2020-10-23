@@ -191,41 +191,62 @@ class CartView(View):
     @login_required
     def post(self, request):
         try:
-            data              = json.loads(request.body)
-            user              = request.user
-            product_id        = data['product_id']
-            product_series_id = data.get('product_series_id', None)
-            product_count     = data['product_count'] 
+            data                = json.loads(request.body)
+            user                = request.user
+            product_id          = data['product_id']
+            product_series_list = data.get('product_series_id')
+            product_count_list  = data['product_count'] 
+            added_product       = None
 
             if not(Product.objects.filter(id = product_id).exists()):
                 return JsonResponse({'message':'WRONG_PRODUCT_ID'}, status = 400)
 
             target_product = Product.objects.get(id = product_id)
 
-            if product_series_id == None:
+            cart_obj = CartList.objects.filter(user_id = user.id, product_id = target_product)
+            if product_series_list == []:
+                
                 if CartList.objects.filter(user_id = user.id, product_id = target_product).exists():
                     return JsonResponse({'message':'Product Already Exist!'}, status = 400)
-                
+                added_product = cart_obj
                 CartList(
                     user           = user,
                     product        = target_product,
-                    count          = product_count
+                    count          = product_count_list[0]
                 ).save()
-                return JsonResponse({'message':'New CartList Added'}, status = 201)
+                return JsonResponse({'message': cart_obj[0].product.name + ' Added'}, status = 201)
+            
+            exist_cart_list = []
+            exist_name_list = []
 
-            target_series  = ProductSeries.objects.get(id = product_series_id)
+            for input_series_data in product_series_list:
+                target_series  = ProductSeries.objects.get(id = input_series_data)
+                cart_obj = CartList.objects.filter(user_id = user.id, product_id = target_product, series_id = input_series_data)
+                
+                if cart_obj.exists():
+                    if product_count_list[product_series_list.index(input_series_data)] != 0:
+                        exist_cart_list.append(cart_obj)
+                    continue
 
-            if CartList.objects.filter(user_id = user.id, product_id = target_product, series_id = product_series_id).exists():
-                return JsonResponse({'message':'Product Already Exist!'}, status = 400)
+                added_product = cart_obj
 
-            CartList(
-                user           = user,
-                product        = target_product,
-                series         = target_series,
-                count          = product_count
-            ).save()
+                if product_count_list[product_series_list.index(input_series_data)] != 0:
+                    CartList(
+                        user           = user,
+                        product        = target_product,
+                        series         = target_series,
+                        count          = product_count_list[product_series_list.index(input_series_data)]
+                    ).save()
 
-            return JsonResponse({'message':'New CartList Added'}, status = 201)
+            if exist_cart_list is not []:
+                for product_exist in exist_cart_list:
+                    exist_name_list.append(product_exist[0].series.name)
+                if added_product is None:
+                    return JsonResponse({'message': str(exist_name_list) + ' already exist in cart'}, status = 401)
+                return JsonResponse({'overlaped': str(exist_name_list), 'Added' : added_product[0].series.name }, status = 201)
+            
+            return JsonResponse({'message': 'New CartList Added'}, status = 201)
+            
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status = 400)
 
