@@ -3,8 +3,9 @@ from django.urls import path
 from .views import (
     SignUpView,
     SignInView,
-    CartView,
-    GoogleSignInView
+    GoogleSignInView,
+    CartView
+
 )
 
 urlpatterns = [
@@ -12,4 +13,5 @@ urlpatterns = [
     path('/signin', SignInView.as_view()),
     path('/cart', CartView.as_view()),
     path('/googlesignin', GoogleSignInView.as_view()),
+    path('/cart', CartView.as_view())
 ]

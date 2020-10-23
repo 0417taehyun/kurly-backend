@@ -1,5 +1,4 @@
-from kurly import local_settings
-
+from kurly   import local_settings
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,7 +22,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'user',
-    'products'
+    'products',
+    'review',
 ]
 
 MIDDLEWARE = [
