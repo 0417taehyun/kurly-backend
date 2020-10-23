@@ -1,4 +1,5 @@
-from kurly   import local_settings
+import local_settings
+
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -6,6 +7,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = local_settings.SECRET_KEY
 
 DATABASES = local_settings.DATABASES
+
+ALGORITHM = local_settings.ALGORITHM
 
 # CACHES = local_settings.CACHES
 

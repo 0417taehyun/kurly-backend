@@ -3,7 +3,7 @@ import json
 
 from django.http             import JsonResponse
 from .models                 import User
-from kurly.local_settings    import SECRET_KEY, ALGORITHM
+from kurly.settings          import SECRET_KEY, ALGORITHM
 
 def login_required(func):
     def wrapper(self, request, *args, **kwargs):

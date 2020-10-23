@@ -16,7 +16,7 @@ from user.models  import (
 from products.models import Product, ProductSeries
 
 from user.utils import login_required
-from kurly import local_settings
+from kurly.settings   import SECRET_KEY, ALGORITHM
 
 from .validator import (
     account_validate,
@@ -87,7 +87,7 @@ class SignInView(View):
 
                 if bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
                     access_token = jwt.encode(
-                        {'id':user.id}, local_settings.SECRET_KEY, algorithm = local_settings.ALGORITHM
+                        {'id':user.id}, SECRET_KEY, algorithm = ALGORITHM
                     ).decode('utf-8')
                     return JsonResponse({'ACCESS_TOKEN': access_token}, status = 200)
 
@@ -118,7 +118,7 @@ class GoogleSignInView(View):
             user = User.objects.get(google_id = google_id)
 
             access_token = jwt.encode(
-                        {'id':user.id}, local_settings.SECRET_KEY, algorithm = local_settings.ALGORITHM
+                        {'id':user.id}, SECRET_KEY, algorithm = ALGORITHM
                     ).decode('utf-8')
             return JsonResponse({'ACCESS_TOKEN': access_token}, status = 200)
 
