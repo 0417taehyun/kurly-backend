@@ -5,7 +5,6 @@ from .views import (
     SignInView,
     GoogleSignInView,
     CartView
-
 )
 
 urlpatterns = [

@@ -47,12 +47,10 @@ class SignUpView(View):
                 phone_number = data['phone_number']
                 address      = data['address']
 
-                print('hi')
                 email_validate(email)
                 email_overlap(email)
                 password_validate(password)
                 phone_number_validate(phone_number)
-                print('hi2')
                 password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
                 password = password.decode('utf-8')
                 print(password)

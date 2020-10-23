@@ -14,11 +14,13 @@ class ReviewView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-            
-            if Product.objects.filter(id = data['product_id']).exists():
+
+            product_id = data['product_id']
+
+            if Product.objects.filter(id = product_id).exists():
                
                 Review.objects.create(
-                    product_name = data['product_name'],
+                    product_name = Product.objects.get(id = product_id).name,
                     title        = data['title'],
                     comment      = data['comment'],
                     review_image = data['review_image'],
