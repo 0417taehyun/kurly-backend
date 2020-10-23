@@ -14,7 +14,7 @@ class ReviewView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-            
+
             product_id = data['product_id']
 
             if Product.objects.filter(id = product_id).exists():
