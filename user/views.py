@@ -30,7 +30,6 @@ from .validator import (
 class SignUpView(View):
     def post(self, request):
         data = json.loads(request.body)
-        print(data)
         try:
             account = data['account']
             if account_validate(account):
@@ -53,7 +52,6 @@ class SignUpView(View):
                 phone_number_validate(phone_number)
                 password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
                 password = password.decode('utf-8')
-                print(password)
                 User(
                     account        = account,
                     password       = password,
@@ -261,7 +259,7 @@ class CartView(View):
             cart.count = product_count
             cart.save()
 
-            return JsonResponse({'message':'UPDATE SUCCESS'}, status = 200)
+            return JsonResponse({'message':'UPDATE_SUCCESS'}, status = 200)
 
         except CartList.DoesNotExist:
             return JsonResponse({'message':'INVALID_ID'}, status = 400)
@@ -277,7 +275,7 @@ class CartView(View):
 
             CartList.objects.get(id = cart_id).delete()
 
-            return JsonResponse({'message':'DELETE SUCCESS'}, status = 200)
+            return JsonResponse({'message':'DELETE_SUCCESS'}, status = 200)
 
         except CartList.DoesNotExist:
             return JsonResponse({'message':'INVALID_ID'}, status = 400)

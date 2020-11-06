@@ -4,13 +4,13 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = local_settings.SECRET_KEY
+SECRET_KEY = local_settings.SECRET_KEY['SECRET_KEY']
 
 DATABASES = local_settings.DATABASES
 
 ALGORITHM = local_settings.ALGORITHM
 
-# CACHES = local_settings.CACHES
+CACHES = local_settings.CACHES
 
 DEBUG = True
 

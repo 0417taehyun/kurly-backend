@@ -1,6 +1,6 @@
 import json
 import redis
-import random
+import random, time
 
 from django.views      import View
 from django.http       import JsonResponse
@@ -10,7 +10,7 @@ from django.db.models  import F, Count, Value, IntegerField, JSONField
 from elasticsearch     import Elasticsearch, helpers
 
 from .models           import Category, SubCategory, Product, ProductDeliveryType, ProductTag, ProductSeries
-from .documents        import get_instance, get_query
+from .documents        import get_instance, get_query, insertion
 from review.models     import Review
 
 
@@ -40,7 +40,6 @@ class ProductsListView(View):
         sort_by_sub_category = data.get('sort_by_sub_category', None)
         sort_by_delivery = data.get('sort_by_delivery', '샛별지역상품')
         sort_by_filter = data.get('sort_by_filter', None)
-
         products = cache.get('products')
 
         if not products:
@@ -51,7 +50,7 @@ class ProductsListView(View):
                 delivery_types = Value([], output_field = JSONField()),
                 discount_price = Value(1, output_field = IntegerField())
             )
-        
+    
         cache.set('products', products)
 
         if sub_category_id:
@@ -92,13 +91,13 @@ class ProductsListView(View):
 
             if sort_by_filter == "신상품순":
                 products = products.filter(is_new = True)
-        
+
             if sort_by_filter == "인기상품순":
                 products = products.all().annotate(count = Count('review__product_id')).order_by('-count')
 
             if sort_by_filter == "낮은 가격순":
                 products = products.all().order_by('price')
-            
+
             if sort_by_filter == "높은 가격순":
                 products = products.all().order_by('-price')
 
@@ -106,21 +105,26 @@ class ProductsListView(View):
                 products = products.order_by('-is_recommended')
         
             products = products.filter(delivery_type__name__contains = sort_by_delivery[:2])
-
+            
+        tags = ProductTag.objects.values('product_id', 'tag__name')
+        delivery_types = ProductDeliveryType.objects.values('product_id', 'delivery_type__name')
         for product in products:
-            tag_names = [
-                tags.tag.name for tags in ProductTag.objects.filter(product_id = product['id']) if tags
-            ]
-            delivery_types = [ 
-                delivery_type.delivery_type.name for delivery_type in ProductDeliveryType.objects.filter(product_id = product['id'])
-            ]
+            tag_names = []
+            for tag in tags:
+                if tag['product_id'] == product['id']:
+                    tag_names.append(tag['tag__name'])
+            product['tag_names'] = tag_names
+
+            delivery_type_names = []
+            for delivery_type in delivery_types:
+                if delivery_type['product_id'] == product['id']:
+                    delivery_type_names.append(delivery_type['delivery_type__name'])
+            product['delivery_types'] = delivery_type_names
+
             if product['discount__percentage']:
                 discount_percentage = 1 - (product['discount__percentage'] / 100)
             else:
                 discount_percentage = 1
-
-            product['tag_names'] = tag_names
-            product['delivery_types'] = delivery_types
             product['discount_price'] = int(product['price'] * discount_percentage)
 
         if sort_by_sub_category == "이 상품 어때요?":
@@ -169,6 +173,8 @@ class ProductDetailView(View):
 
 class ProductSearchView(View):
     def post(self, request):
+        insertion()
+        time.sleep(3)
         data = json.loads(request.body)
         keyword = data['keyword']
 

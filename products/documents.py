@@ -9,7 +9,7 @@ def get_instance():
     global es_instance
     if es_instance:
         return es_instance
-    es_instance = Elasticsearch()
+    es_instance = Elasticsearch(hosts="elasticsearch", port="9200")
     return es_instance
 
 
@@ -57,7 +57,7 @@ def insertion():
             }
         }
     }
-    es.indices.delete(index = index)
+    # es.indices.delete(index = index)
     es.indices.create(index = index, body = body)
 
     products = Product.objects.values('name')

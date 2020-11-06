@@ -12,13 +12,12 @@ django-elasticsearch-dsl==7.1.4
 django-redis==4.12.1
 elasticsearch==7.9.1
 elasticsearch-dsl==7.3.0
+gunicorn==20.0.4
 idna==2.10
 isort==5.5.4
 lazy-object-proxy==1.4.3
 mccabe==0.6.1
 mysqlclient==2.0.1
-numpy==1.19.2
-pandas==1.1.2
 pycparser==2.20
 PyJWT==1.7.1
 pylint==2.6.0
