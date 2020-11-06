@@ -12,6 +12,8 @@ ALGORITHM = local_settings.ALGORITHM
 
 CACHES = local_settings.CACHES
 
+ELASTICSEARCH = local_settings.ELASTICSEARCH
+
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']

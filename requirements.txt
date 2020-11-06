@@ -18,6 +18,8 @@ isort==5.5.4
 lazy-object-proxy==1.4.3
 mccabe==0.6.1
 mysqlclient==2.0.1
+numpy==1.19.2
+pandas==1.1.2
 pycparser==2.20
 PyJWT==1.7.1
 pylint==2.6.0
@@ -25,6 +27,7 @@ python-dateutil==2.8.1
 pytz==2020.1
 redis==3.5.3
 requests==2.24.0
+requests-aws4auth==1.0.1
 selenium==3.141.0
 six==1.15.0
 soupsieve==2.0.1

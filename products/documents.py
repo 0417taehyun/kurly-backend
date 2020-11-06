@@ -1,7 +1,9 @@
-from elasticsearch import Elasticsearch, helpers
+from elasticsearch     import Elasticsearch, helpers, RequestsHttpConnection
+from requests_aws4auth import AWS4Auth
 
-from .models       import Product
-from .convert      import korean_to_englished_string, word_to_mapping
+from .models           import Product
+from .convert          import korean_to_englished_string, word_to_mapping
+from kurly.settings    import ELASTICSEARCH
 
 es_instance = None
 
@@ -9,7 +11,20 @@ def get_instance():
     global es_instance
     if es_instance:
         return es_instance
-    es_instance = Elasticsearch(hosts="elasticsearch", port="9200")
+    auth = AWS4Auth(
+        ELASTICSEARCH['AWS_ACCESS_KEY'],
+        ELASTICSEARCH['AWS_SECRET_KEY'],
+        ELASTICSEARCH['ES_REGION'],
+        ELASTICSEARCH['SERVICE']
+    )
+    es_instance = Elasticsearch(
+        hosts = [ELASTICSEARCH['ES_HOST']],
+        http_auth = auth,
+        user_ssl = True,
+        verify_certs = True,
+        connection_class = RequestsHttpConnection,
+        port = ELASTICSEARCH['ES_PORT']
+    )
     return es_instance
 
 
@@ -57,7 +72,6 @@ def insertion():
             }
         }
     }
-    # es.indices.delete(index = index)
     es.indices.create(index = index, body = body)
 
     products = Product.objects.values('name')

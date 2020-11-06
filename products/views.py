@@ -1,6 +1,6 @@
 import json
 import redis
-import random, time
+import random
 
 from django.views      import View
 from django.http       import JsonResponse
@@ -10,7 +10,7 @@ from django.db.models  import F, Count, Value, IntegerField, JSONField
 from elasticsearch     import Elasticsearch, helpers
 
 from .models           import Category, SubCategory, Product, ProductDeliveryType, ProductTag, ProductSeries
-from .documents        import get_instance, get_query, insertion
+from .documents        import get_instance, get_query
 from review.models     import Review
 
 
@@ -173,8 +173,6 @@ class ProductDetailView(View):
 
 class ProductSearchView(View):
     def post(self, request):
-        insertion()
-        time.sleep(3)
         data = json.loads(request.body)
         keyword = data['keyword']
 
