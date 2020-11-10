@@ -50,9 +50,8 @@
 
 #### 이태현
 
-- **Beautiful Soup**과 **Selenium**을 활용한 동적 페이지 크롤링
-- Python 스크립트를 통한 **MySQL 데이터 베이스** 구축
-- `**request**` 와 `**Q**` 를 통한 여러 필터가 적용 되는 **하나의 RESTful API** 구현
-- `**POST**` , `**GET**` , `**PETCH**` , `**DELETE**` 메서드를 사용하여 장바구니 **CRUD API** 구현
-- `**prefetch related**` , `**annotate**` 와 `**F**` , `**aggregate**` 와 `**Sum**`  등의 **ORM 문법** 사용으로 코드 가독성, 효율성 증대
-- **AWS RDS**와 **EC2**를 활용한 서버 배포
+- **`annotate`** , **`Value`** , **`Count`** 를 활용하여 **임시 필드**를 만들어 필요한 데이터 값을 효율적으로 창출
+- Json 데이터를 Body로 받아 **다수의 필터**가 적용되는 **하나의 RESTful API** 구현
+- **AWS Elasticache Redis**를 활용한 **대용량 데이터 캐싱**을 통해 처리 속도 향상
+- **AWS Elasticsearch Service**와 **NGram Tokenizer**, 유니코드를 통한 **한글 음운 분리 및 키 맵핑**(한영키 오타)을 통한 정확도 높은 **검색 기능** 구현
+- **Docker**, **AWS RDS**와 **EC2**를 활용한 서버 배포
